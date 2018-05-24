@@ -1,0 +1,61 @@
+pragma solidity ^0.4.20;
+import "SafeMath.sol";
+import "ERC20.sol";
+
+contract QAndA {
+    using SafeMath for uint256;
+    uint256 public price;
+    address public qOwner;
+    uint256 public upVoteCount;
+    SpitballToken public tokenReward;
+    mapping (address => uint256) public balanceOf;
+    mapping (uint256 => address) public upVote;
+     
+    event AnswerAccepted(address indexed from, address indexed to, uint256 value);
+    //event FundTransfer(address backer, uint256 amount, bool isContribution);
+    
+    function QAndA (uint256 _price, address _addressOfTokenUsedAsReward) public {
+        price = _price;
+        qOwner = msg.sender;
+        tokenReward = SpitballToken(_addressOfTokenUsedAsReward);
+        tokenReward.approve(msg.sender, SafeMath.mul(price, 10**18));
+    }
+    
+    
+    function submit () public
+    {
+        tokenReward.transferFrom(msg.sender, address(this), SafeMath.mul(price, 10**18));
+        balanceOf[msg.sender] = SafeMath.add(balanceOf[msg.sender], SafeMath.mul(price, 10**18));
+    }
+    
+    function approveAnswer (address _winner) public {
+        tokenReward.transfer(_winner, SafeMath.mul(price, 10**18));
+        balanceOf[msg.sender] = SafeMath.sub(balanceOf[msg.sender], SafeMath.mul(price, 10**18));
+    }
+    
+    function returnFoundsToUser () public {
+        require(msg.sender == qOwner);
+        tokenReward.transfer(msg.sender, SafeMath.mul(price, 10**18));
+        balanceOf[msg.sender] = SafeMath.sub(balanceOf[msg.sender], SafeMath.mul(price, 10**18));
+    }
+    
+    function spreadFounds (uint8 percentage) public {
+        tokenReward.transfer(msg.sender, SafeMath.mul(SafeMath.mul(price,SafeMath.div(percentage,100)), 10**18));
+    }
+    
+    function upVote (uint256 _value) public {
+        upVote[upVoteCount] = msg.sender;
+        upVoteCount = SafeMath.add(upVoteCount,1);
+        tokenReward.approve(msg.sender, SafeMath.mul(_value, 10**18));
+        tokenReward.transferFrom(msg.sender, address(this), SafeMath.mul(_value, 10**18));
+    }
+    
+    function returnUpVoteList () public view returns (address[] memory a){
+        address[] memory addresses = new address[](upVoteCount);
+          for(uint256 i=0; i<upVoteCount; i++){
+            addresses[i] = upVote[i];
+        }
+        return addresses;
+    }
+    
+}
