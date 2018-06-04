@@ -10,8 +10,8 @@ contract QAndA {
     
     uint256 price;
     address qOwner;
-    address qWiner;
     uint256 answerCounter;
+    uint256 totalUpVotes;
     mapping (string => AnswersData) answers;
     mapping (uint => string) answersIndex; 
     }
@@ -19,6 +19,8 @@ contract QAndA {
     struct AnswersData
     {
     string aid;
+    address Address;
+    
     address[] upVoteAddr;
     }
     
@@ -37,8 +39,7 @@ contract QAndA {
     }
 
 
-    function destroy(uint256 _qId) internal
-    {  
+    function destroy(uint256 _qId) private {  
         for(uint i=0;i<id[_qId].answerCounter;i++)
         {
             for(uint j=0; j < id[_qId].answers[id[_qId].answersIndex[i]].upVoteAddr.length; j++)
@@ -51,64 +52,84 @@ contract QAndA {
     }
 
     
-    function submitNewQuestion (uint256 _qId, uint256 _price)  public
-    {
-        QuestionData memory data = QuestionData(_price, msg.sender, address(0), 0);
+    function submitNewQuestion (uint256 _qId, uint256 _price, address userAddress)  public {
+        QuestionData memory data = QuestionData(_price, userAddress, 0, 0);
         id[_qId] = data;
-        tokenReward.approve(msg.sender, SafeMath.mul(_price, 10**18));
-        tokenReward.transferFrom(msg.sender, address(this), SafeMath.mul(_price, 10**18));
-        balanceOf[msg.sender] = SafeMath.add(balanceOf[msg.sender], SafeMath.mul(_price, 10**18));
+        tokenReward.approve(userAddress, _price);
+        tokenReward.transferFrom(userAddress, address(this), _price);
+        balanceOf[userAddress] = SafeMath.add(balanceOf[userAddress], _price);
     }
     
-    function submitNewAnswer (uint256 _qId, string _answerId) public //returns (uint256)
-    {   //see if can be private and call from upvote function
+    function submitNewAnswer (uint256 _qId, address submiterAddress, string _answerId) public //returns (uint256)
+    {   
         require(id[_qId].price > 0);
         address[] memory tempUpVote = new address[](0);
-        AnswersData memory data = AnswersData(_answerId, tempUpVote);
+        AnswersData memory data = AnswersData(_answerId, submiterAddress, tempUpVote);
         id[_qId].answers[_answerId] = data;
         id[_qId].answerCounter = SafeMath.add(1, id[_qId].answerCounter);
         NewAnswer(_answerId);
     }
     
     
-    function approveAnswer (uint256 _qId, string _answerId, address _winner) public 
-    {
-        id[_qId].qWiner = _winner;
-        tokenReward.transfer(_winner, SafeMath.mul(id[_qId].price, 10**18));
-        balanceOf[msg.sender] = SafeMath.sub(balanceOf[msg.sender], SafeMath.mul(id[_qId].price, 10**18));
+    function approveAnswer (uint256 _qId, string _answerId, address _winner, address submiterAddress) public {
+        require(submiterAddress == id[_qId].qOwner);
+        require(id[_qId].answers[_answerId].Address == _winner);
+        tokenReward.transfer(_winner, id[_qId].price);
+        balanceOf[submiterAddress] = SafeMath.sub(balanceOf[submiterAddress], id[_qId].price);
         
         if(id[_qId].answers[_answerId].upVoteAddr.length > 0)
         {
              for(uint256 i=0; i<id[_qId].answers[_answerId].upVoteAddr.length; i++){
                  
-                 tokenReward.transfer(id[_qId].answers[_answerId].upVoteAddr[i], SafeMath.mul(1, 10**18));
-                 balanceOf[msg.sender] = SafeMath.sub(balanceOf[id[_qId].answers[_answerId].upVoteAddr[i]], SafeMath.mul(id[_qId].price, 10**18));
+                 tokenReward.transfer(
+                     id[_qId].answers[_answerId].upVoteAddr[i], SafeMath.mul(
+                         SafeMath.mul(
+                                 SafeMath.div(
+                                        id[_qId].totalUpVotes, id[_qId].answers[_answerId].upVoteAddr.length
+                                 )
+                                 ,SafeMath.div(id[_qId].price,2)
+                         )
+                             
+                        , 10**18
+                     )
+                 );
+                 balanceOf[submiterAddress] = SafeMath.sub(balanceOf[id[_qId].answers[_answerId].upVoteAddr[i]], id[_qId].price);
              }
         }
-      // Spred founds to upvoters
-        destroy(_qId); // nedd to see if working
+      
+        destroy(_qId); 
     }
     
     function returnFoundsToUser (uint256 _qId) public {
-        tokenReward.transfer(msg.sender, SafeMath.mul(id[_qId].price, 10**18));
-        balanceOf[msg.sender] = SafeMath.sub(balanceOf[msg.sender], SafeMath.mul(id[_qId].price, 10**18));
+        tokenReward.transfer(msg.sender, id[_qId].price);
+        balanceOf[msg.sender] = SafeMath.sub(balanceOf[msg.sender], id[_qId].price);
         destroy(_qId); // nedd to see if working
     }
     
-    function spreadFounds (uint256 _qId, uint8 percentage) public {
-        tokenReward.transfer(msg.sender, SafeMath.mul(SafeMath.mul(id[_qId].price, SafeMath.div(percentage,100)), 10**18));
+    function spreadFounds (uint256 _qId) public {
+            for(uint i=0;i<id[_qId].answerCounter;i++)
+        {
+            for(uint j=0; j < id[_qId].answers[id[_qId].answersIndex[i]].upVoteAddr.length; j++)
+            {
+                if(id[_qId].answers[id[_qId].answersIndex[i]].upVoteAddr.length > 0)
+                {
+                    uint256 amount = SafeMath.mul(SafeMath.div(id[_qId].answers[id[_qId].answersIndex[i]].upVoteAddr.length, id[_qId].answerCounter), id[_qId].price);
+                    tokenReward.transfer(msg.sender, amount);
+                }
+            }
+        }
     }
     
-    function upVote (uint256 _qId, string _answerId, uint256 _value) public 
-    {
-    
-    require(keccak256(id[_qId].answers[_answerId].aid) == keccak256(_answerId));
-        
-    id[_qId].answers[_answerId].upVoteAddr.push(msg.sender);
-
-    tokenReward.approve(msg.sender, SafeMath.mul(_value, 10**18));
-    tokenReward.transferFrom(msg.sender, address(this), SafeMath.mul(_value, 10**18));
-    balanceOf[msg.sender] = SafeMath.add(balanceOf[msg.sender], SafeMath.mul(_value, 10**18));
+    function upVote (uint256 _qId, string _answerId, address userAddress) public {
+        uint256 value = SafeMath.div(id[_qId].price,2);
+        require(keccak256(id[_qId].answers[_answerId].aid) == keccak256(_answerId));
+        require(id[_qId].answers[_answerId].Address != userAddress);
+            
+        id[_qId].answers[_answerId].upVoteAddr.push(userAddress);
+        id[_qId].totalUpVotes = SafeMath.add(id[_qId].totalUpVotes, 1);
+        tokenReward.approve(userAddress, value);
+        tokenReward.transferFrom(userAddress, address(this), value);
+        balanceOf[userAddress] = SafeMath.add(balanceOf[userAddress], value);
     }
     
     
@@ -119,7 +140,5 @@ contract QAndA {
         }
         return addresses;
     }
-    
-    
 
 }
