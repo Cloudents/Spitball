@@ -1,4 +1,4 @@
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.24;
 
 import "browser/SafeMath.sol";
 
@@ -6,7 +6,7 @@ contract owned {
     address public owner;
 
 
-    function owned () public {
+    constructor () public {
         owner = msg.sender;
     }
 
@@ -45,7 +45,7 @@ contract TokenERC20 {
      *
      * Initializes contract with initial supply tokens to the creator of the contract
      */
-    function TokenERC20 (
+    constructor (
         uint256 initialSupply,
         string tokenName,
         string tokenSymbol
@@ -72,7 +72,7 @@ contract TokenERC20 {
         balanceOf[_from] = SafeMath.sub(balanceOf[_from], _value);
         // Add the same to the recipient
         balanceOf[_to] = SafeMath.add(balanceOf[_to], _value);
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
         // Asserts are used to use static analysis to find bugs in your code. They should never fail
         assert(SafeMath.add(balanceOf[_from], balanceOf[_to]) == previousBalances);
     }
@@ -149,7 +149,7 @@ contract TokenERC20 {
         require(balanceOf[msg.sender] >= _value);   // Check if the sender has enough
         balanceOf[msg.sender] = SafeMath.sub(balanceOf[msg.sender], _value);            // Subtract from the sender
         totalSupply = SafeMath.sub(totalSupply, _value);                      // Updates totalSupply
-        Burn(msg.sender, _value);
+        emit Burn(msg.sender, _value);
         return true;
     }
 
@@ -167,7 +167,7 @@ contract TokenERC20 {
         balanceOf[_from] = SafeMath.sub(balanceOf[_from], _value);                         // Subtract from the targeted balance
         allowance[_from][msg.sender] = SafeMath.sub(allowance[_from][msg.sender], _value);             // Subtract from the sender's allowance
         totalSupply = SafeMath.sub(totalSupply, _value);                              // Update totalSupply
-        Burn(_from, _value);
+        emit Burn(_from, _value);
         return true;
     }
 }
@@ -186,7 +186,7 @@ contract SpitballToken is owned, TokenERC20 {
     event FrozenFunds(address target, bool frozen);
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    function SpitballToken (
+    constructor (
         uint256 initialSupply,
         string tokenName,
         string tokenSymbol
@@ -201,7 +201,7 @@ contract SpitballToken is owned, TokenERC20 {
         require(!frozenAccount[_to]);                       // Check if recipient is frozen
         balanceOf[_from] = SafeMath.sub(balanceOf[_from], _value);                         // Subtract from the sender
         balanceOf[_to] = SafeMath.add(balanceOf[_to], _value);                           // Add the same to the recipient
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
     }
 
     /// @notice Create `mintedAmount` tokens and send it to `target`
@@ -210,8 +210,8 @@ contract SpitballToken is owned, TokenERC20 {
     function mintToken(address target, uint256 mintedAmount) onlyOwner public {
         balanceOf[target] = SafeMath.add(balanceOf[target], mintedAmount);
         totalSupply = SafeMath.add(totalSupply, mintedAmount);
-        Transfer(0, this, mintedAmount);
-        Transfer(this, target, mintedAmount);
+        emit Transfer(0, this, mintedAmount);
+        emit Transfer(this, target, mintedAmount);
     }
 
     /// @notice `freeze? Prevent | Allow` `target` from sending & receiving tokens
@@ -219,10 +219,9 @@ contract SpitballToken is owned, TokenERC20 {
     /// @param freeze either to freeze it or not
     function freezeAccount(address target, bool freeze) onlyOwner public {
         frozenAccount[target] = freeze;
-        FrozenFunds(target, freeze);
+        emit FrozenFunds(target, freeze);
     }
 
- 
 }
 
 
