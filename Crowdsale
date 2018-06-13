@@ -1,8 +1,6 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 import "SafeMath.sol";
 import "ERC20.sol";
-
-
 
 
 contract Crowdsale {
@@ -24,7 +22,8 @@ contract Crowdsale {
      *
      * Setup the owner
      */
-    function Crowdsale (
+    constructor (
+   
         address ifSuccessfulSendTo,
         uint256 fundingGoalInEthers,
         uint256 durationInMinutes,
@@ -34,21 +33,18 @@ contract Crowdsale {
         beneficiary = ifSuccessfulSendTo;
         fundingGoal = SafeMath.mul(fundingGoalInEthers, 1 ether);
         deadline = SafeMath.add(now, SafeMath.mul(durationInMinutes, 1 minutes));
-        price = SafeMath.mul(etherCostOfEachToken, 1 ether);
+        price = SafeMath.mul(etherCostOfEachToken, 1 wei);
         tokenReward = SpitballToken(addressOfTokenUsedAsReward);
     }
 
-    /**
-     * Fallback function
-     *
-     * The function without name is the default function that is called whenever anyone sends funds to a contract
-     */
-    function () public payable {
+   
+   
+    function buyTokens () public payable {
         require(!crowdsaleClosed);
         uint256 amount = msg.value;
         balanceOf[msg.sender] = SafeMath.add(balanceOf[msg.sender], amount);
         amountRaised = SafeMath.add(amountRaised, amount);
-        tokenReward.transfer(msg.sender, SafeMath.div(SafeMath.mul(amount,  10 ** 18), price));
+        tokenReward.transfer(msg.sender, SafeMath.div(amount, price));
         emit FundTransfer(msg.sender, amount, true);
     }
 
@@ -90,7 +86,7 @@ contract Crowdsale {
 
         if (fundingGoalReached && beneficiary == msg.sender) {
             if (beneficiary.send(amountRaised)) {
-                emit  FundTransfer(beneficiary, amountRaised, false);
+                emit FundTransfer(beneficiary, amountRaised, false);
             } else {
                 //If we fail to send the funds to beneficiary, unlock funders balance
                 fundingGoalReached = false;
