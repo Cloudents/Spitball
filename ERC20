@@ -1,6 +1,6 @@
 pragma solidity ^0.4.20;
 
-import "SafeMath.sol";
+import "browser/SafeMath.sol";
 
 contract owned {
     address public owner;
@@ -50,7 +50,7 @@ contract TokenERC20 {
         string tokenName,
         string tokenSymbol
     ) public {
-        totalSupply = SafeMath.mul(initialSupply, 10 ** uint256(decimals));  // Update total supply with the decimal amount
+        totalSupply = initialSupply;  // Update total supply with the decimal amount
         balanceOf[msg.sender] = totalSupply;                // Give the creator all initial tokens
         name = tokenName;                                   // Set the name for display purposes
         symbol = tokenSymbol;                               // Set the symbol for display purposes
@@ -172,14 +172,13 @@ contract TokenERC20 {
     }
 }
 
-/******************************************/
-/*       ADVANCED TOKEN STARTS HERE       */
-/******************************************/
+
+
 
 contract SpitballToken is owned, TokenERC20 {
 
-    uint256 public sellPrice;
-    uint256 public buyPrice;
+    /*uint256 public sellPrice;
+    uint256 public buyPrice;*/
 
     mapping (address => bool) public frozenAccount;
 
@@ -223,27 +222,7 @@ contract SpitballToken is owned, TokenERC20 {
         FrozenFunds(target, freeze);
     }
 
-    /// @notice Allow users to buy tokens for `newBuyPrice` eth and sell tokens for `newSellPrice` eth
-    /// @param newSellPrice Price the users can sell to the contract
-    /// @param newBuyPrice Price users can buy from the contract
-    function setPrices(uint256 newSellPrice, uint256 newBuyPrice) onlyOwner public {
-        sellPrice = newSellPrice;
-        buyPrice = newBuyPrice;
-    }
-
-    /// @notice Buy tokens from contract by sending ether
-    function buy() payable public {
-        uint amount = msg.value / buyPrice;               // calculates the amount
-        _transfer(this, msg.sender, amount);              // makes the transfers
-    }
-
-    /// @notice Sell `amount` tokens to contract
-    /// @param amount amount of tokens to be sold
-    function sell(uint256 amount) public {
-        require(address(this).balance >= amount * sellPrice);      // checks if the contract has enough ether to buy
-        _transfer(msg.sender, this, amount);              // makes the transfers
-        msg.sender.transfer(amount * sellPrice);          // sends ether to the seller. It's important to do this last to avoid recursion attacks
-    }
+ 
 }
 
 
