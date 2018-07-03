@@ -5,7 +5,7 @@ import "github.com/OpenZeppelin/zeppelin-solidity/contracts/token/ERC20/Standard
 
 import "github.com/OpenZeppelin/zeppelin-solidity/contracts/token/ERC20/PausableToken.sol";
 import "github.com/OpenZeppelin/zeppelin-solidity/contracts/token/ERC20/MintableToken.sol";
-
+import "./SBLTokenUpgradeable.sol";
 
 /**
  * @title ERC865Token Token
@@ -18,11 +18,17 @@ import "github.com/OpenZeppelin/zeppelin-solidity/contracts/token/ERC20/Mintable
 contract ERC865Token is ERC865, PausableToken, MintableToken {
 
     /* Nonces of transfers performed */
-    mapping(bytes => bool) signatures;
-
+    //mapping(bytes => bool) signatures;
+    IData internal interfaceData;
+    
     event TransferPreSigned(address indexed from, address indexed to, address indexed delegate, uint256 amount, uint256 fee);
     event ApprovalPreSigned(address indexed from, address indexed to, address indexed delegate, uint256 amount, uint256 fee);
-
+    
+    constructor (address _interfaceData) public
+    {
+        interfaceData = IData(_interfaceData);
+    }
+ 
     /**
      * @notice Submit a presigned transfer
      * @param _signature bytes The signature, issued by the owner.
@@ -43,18 +49,20 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
         returns (bool)
     {
         require(_to != address(0));
-        require(signatures[_signature] == false);
+        require(interfaceData.getSignatures(_signature) == false);
+        //require(signatures[_signature] == false);
 
         bytes32 hashedTx = transferPreSignedHashing(address(this), _to, _value, _fee, _nonce);
 
         address from = recover(hashedTx, _signature);
        
-        require(from != address(0)); // this is the BUG
+        require(from != address(0));
 
         balances[from] = balances[from].sub(_value).sub(_fee);
         balances[_to] = balances[_to].add(_value);
         balances[msg.sender] = balances[msg.sender].add(_fee);
-        signatures[_signature] = true;
+        interfaceData.setSignatures(_signature, true);
+        //signatures[_signature] = true;
 
         emit Transfer(from, _to, _value);
         emit Transfer(from, msg.sender, _fee);
@@ -81,7 +89,7 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
         returns (bool)
     {
         require(_spender != address(0));
-        require(signatures[_signature] == false);
+        require(interfaceData.getSignatures(_signature) == false);
 
         bytes32 hashedTx = approvePreSignedHashing(address(this), _spender, _value, _fee, _nonce);
         address from = recover(hashedTx, _signature);
@@ -90,7 +98,8 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
         allowed[from][_spender] = _value;
         balances[from] = balances[from].sub(_fee);
         balances[msg.sender] = balances[msg.sender].add(_fee);
-        signatures[_signature] = true;
+        interfaceData.setSignatures(_signature, true);
+        //signatures[_signature] = true;
 
         emit Approval(from, _spender, _value);
         emit Transfer(from, msg.sender, _fee);
@@ -117,7 +126,8 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
         returns (bool)
     {
         require(_spender != address(0));
-        require(signatures[_signature] == false);
+        require(interfaceData.getSignatures(_signature) == false);
+        //require(signatures[_signature] == false);
 
         bytes32 hashedTx = increaseApprovalPreSignedHashing(address(this), _spender, _addedValue, _fee, _nonce);
         address from = recover(hashedTx, _signature);
@@ -126,7 +136,8 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
         allowed[from][_spender] = allowed[from][_spender].add(_addedValue);
         balances[from] = balances[from].sub(_fee);
         balances[msg.sender] = balances[msg.sender].add(_fee);
-        signatures[_signature] = true;
+        interfaceData.setSignatures(_signature, true);
+        //signatures[_signature] = true;
 
         emit Approval(from, _spender, allowed[from][_spender]);
         emit Transfer(from, msg.sender, _fee);
@@ -153,7 +164,8 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
         returns (bool)
     {
         require(_spender != address(0));
-        require(signatures[_signature] == false);
+        require(interfaceData.getSignatures(_signature) == false);
+        //require(signatures[_signature] == false);
 
         bytes32 hashedTx = decreaseApprovalPreSignedHashing(address(this), _spender, _subtractedValue, _fee, _nonce);
         address from = recover(hashedTx, _signature);
@@ -167,7 +179,8 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
         }
         balances[from] = balances[from].sub(_fee);
         balances[msg.sender] = balances[msg.sender].add(_fee);
-        signatures[_signature] = true;
+        interfaceData.setSignatures(_signature, true);
+        //signatures[_signature] = true;
 
         emit Approval(from, _spender, _subtractedValue);
         emit Transfer(from, msg.sender, _fee);
@@ -198,7 +211,8 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
     {
 
         require(_to != address(0));
-        require(signatures[_signature] == false);
+        require(interfaceData.getSignatures(_signature) == false);
+        //require(signatures[_signature] == false);
 
         bytes32 hashedTx = transferFromPreSignedHashing(address(this), _from, _to, _value, _fee, _nonce);
 
@@ -212,7 +226,8 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
 
         balances[spender] = balances[spender].sub(_fee);
         balances[msg.sender] = balances[msg.sender].add(_fee);
-        signatures[_signature] = true;
+        interfaceData.setSignatures(_signature, true);
+        //signatures[_signature] = true;
 
         emit Transfer(_from, _to, _value);
         emit Transfer(spender, msg.sender, _fee);
@@ -374,6 +389,13 @@ contract ERC865Token is ERC865, PausableToken, MintableToken {
       }
     }
        
+    function recoverAddr(bytes32 msgHash, uint8 v, bytes32 r, bytes32 s) public pure returns (address) {
+        return ecrecover(msgHash, v, r, s);
+    }
+
+    function isSigned(address _addr, bytes32 msgHash, uint8 v, bytes32 r, bytes32 s) public pure returns (bool) {
+        return ecrecover(msgHash, v, r, s) == _addr;
+    }
       
     
 
