@@ -1,0 +1,76 @@
+pragma solidity ^0.4.24;
+
+
+interface IData
+{
+    function setSignatures (bytes _sig, bool flag) external;
+    function getSignatures (bytes _sig) external view returns (bool);
+    function getSymbol () external pure returns (string);
+    function getName () external pure returns (string);
+    function getDecimals () external pure returns (uint8);
+    function getAmountOfTokenToMint() external pure returns (uint256);
+    function getIsTransferWhitelistOnly () external view returns (bool);
+    function setIsTransferWhitelistOnly (bool _flag) external;
+    function getTransfersWhitelist (address WhitelistAddress) external view returns (bool);
+    function setTransfersWhitelist (address _WhitelistAddress, bool _flag) external;
+}
+
+contract DataBase is IData
+{
+    //ERC865Token
+    mapping(bytes => bool) private signatures;
+    function setSignatures (bytes _sig, bool flag) external
+    {
+        signatures[_sig] = flag;
+    }
+    function getSignatures (bytes _sig) external view returns (bool)
+    {
+        return  signatures[_sig];
+    }
+
+    //SBLToken
+    string private constant symbol = "SBL";
+    function getSymbol () external pure returns (string)
+    {
+        return symbol;
+    }
+     
+    string private constant name = "Spitball Token";
+    function getName () external pure returns (string)
+    {
+        return name;
+    }
+    uint8 private constant decimals = 18;
+    function getDecimals () external pure returns (uint8)
+    {
+        return decimals;
+    }
+    uint256 private constant amountOfTokenToMint = 10**9 * 10**uint256(decimals);
+    function getAmountOfTokenToMint() external pure returns (uint256)
+    {
+        return amountOfTokenToMint;
+    }
+    bool private isTransferWhitelistOnly;
+    function getIsTransferWhitelistOnly () external view returns (bool)
+    {
+        return isTransferWhitelistOnly;
+    }
+    
+    function setIsTransferWhitelistOnly (bool _flag) external
+    {
+        isTransferWhitelistOnly = _flag;
+    }
+    
+   
+    mapping (address => bool) private transfersWhitelist;
+    function getTransfersWhitelist (address _WhitelistAddress) external view returns (bool)
+    {
+        return transfersWhitelist[_WhitelistAddress];
+    }
+    
+    function setTransfersWhitelist (address _WhitelistAddress, bool _flag) external
+    {
+        transfersWhitelist[_WhitelistAddress] = _flag;
+    }
+    
+}
