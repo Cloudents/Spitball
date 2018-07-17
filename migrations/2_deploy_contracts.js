@@ -1,10 +1,10 @@
 const Token = artifacts.require("./../contracts/SpitballToken.sol");
 const Database = artifacts.require("./../contracts/ERC865Database.sol");
 const Crowdsale = artifacts.require("./../contracts/Crowdsale.sol");
-
+const QandA = artifacts.require("./../contracts/QandA.sol");
 
 module.exports = function(deployer, network, accounts) {
-  let database, token, crowdsale;
+  let database, token, crowdsale, qanda;
 
   const owner = accounts[4];
   const fundingGoal = 1000;
@@ -34,6 +34,16 @@ module.exports = function(deployer, network, accounts) {
 
           console.log(`Crowdsale: ${instance.address}`);
         })
+        .then((instance) => {
+          deployer.deploy(QandA, tokenAddress)
+          .then((instance) => {
+
+            qanda = instance
+  
+            console.log(`QandA: ${instance.address}`);
+          })
+        });
+        
       });
   });
 };
