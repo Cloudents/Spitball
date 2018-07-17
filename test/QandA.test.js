@@ -212,7 +212,8 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
       const vrs3 = ethUtil.ecsign(hashedTightPacked(components3), alicePrivateKey);
       const sig3 = ethUtil.toRpcSig(vrs3.v, vrs3.r, vrs3.s);
       await qa.upVote(questionId, _answerId, sig3, fee, nonce3, {from : damiens}).should.be.fulfilled;
-      alice.should.be.equal(await qa.getUpVote(questionId, _answerId));
+      const test = await qa.getUpVoteList(questionId, _answerId);
+      alice.should.be.equal(test[0]);
      });
    });
 
@@ -324,14 +325,14 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
             Buffer.from('f7ac9c2e', 'hex'),
             formattedAddress(token.address),
             formattedAddress(qa.address),
-            formattedInt(amount),
+            formattedInt(0),
             formattedInt(fee),
             formattedInt(nonce2)
           ];
           const vrs2 = ethUtil.ecsign(hashedTightPacked(components2), alicePrivateKey);
           const sig2 = ethUtil.toRpcSig(vrs2.v, vrs2.r, vrs2.s);
 
-          await qa.returnFoundsToUser(questionId, sig2, amount, fee, nonce2, {from : damiens}).should.be.fulfilled;;
+          await qa.returnFoundsToUser(questionId, sig2, fee, nonce2, {from : owner}).should.be.fulfilled;;
           (await token.balanceOf(alice)).toNumber().should.be.equal(190);
           
       });
