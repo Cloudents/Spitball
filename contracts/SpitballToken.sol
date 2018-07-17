@@ -73,21 +73,20 @@ contract SpitballToken is ERC865Token {
         return super.transferFrom(_from, _to, _value);
     }
 
-    // /**
-     //* @notice Submit a presigned transfer
-     //* @param _signature bytes The signature, issued by the owner.
-     //* @param _to address The address which you want to transfer to.
-     //* @param _value uint256 The amount of tokens to be transferred.
-     //* @param _fee uint256 The amount of tokens paid to msg.sender, by the owner.
-    // * @param _nonce uint256 Presigned transaction number.
-    // */
+     /**
+     * @notice Submit a presigned transfer
+     * @param _signature bytes The signature, issued by the owner.
+     * @param _to address The address which you want to transfer to.
+     * @param _value uint256 The amount of tokens to be transferred.
+     * @param _fee uint256 The amount of tokens paid to msg.sender, by the owner.
+     * @param _nonce uint256 Presigned transaction number.
+     */
     function transferPreSigned(
         bytes _signature,
         address _to,
         uint256 _value,
         uint256 _fee,
         uint256 _nonce
-        //bytes32 msgHash, uint8 v, bytes32 r, bytes32 s
     )
         whenNotPaused 
         //pure // test
