@@ -7,7 +7,8 @@ module.exports = function(deployer, network, accounts) {
   let database, token, crowdsale, qanda;
 
   const owner = accounts[4];
-  const fundingGoal = 1000;
+  const fundingGoalMin = 1000;
+  //const fundingGoalMax = 2000;
   const duration = 10080;
   const etherCost = 1000000000000000000;
   let tokenAddress;
@@ -27,7 +28,7 @@ module.exports = function(deployer, network, accounts) {
   		})
       .then((instance) => {
 
-        deployer.deploy(Crowdsale, owner, fundingGoal, duration, etherCost, tokenAddress)
+        deployer.deploy(Crowdsale, owner, fundingGoalMin, duration, etherCost, tokenAddress)
         .then((instance) => {
 
           crowdsale = instance
