@@ -49,14 +49,13 @@ contract('Crowdsale', ([alice, bob, charlie, damiens, owner]) => {
     token = await SpitballToken.new(database.address, {from: owner});
     crowdsale = await Crowdsale.new(owner, fundingGoal, saleDuration, etherCost, token.address, {from:owner});
     saleDurationTimestamp = latestTime() + duration.minutes(saleDuration);
-	await token.mint(crowdsale.address, fundingGoal * etherCost, {from: owner});
-	crowdsale.approve(alice, {from : owner});
-	crowdsale.approve(bob, {from : owner});
-	crowdsale.approve(charlie, {from : owner});
-	crowdsale.approve(damiens, {from : owner});
+  	await token.mint(crowdsale.address, fundingGoal * etherCost, {from: owner});
+  	await crowdsale.addAddressToWhitelist(alice, {from : owner});
+  	await crowdsale.addAddressToWhitelist(bob, {from : owner});
+  	await crowdsale.addAddressToWhitelist(charlie, {from : owner});
+  	await crowdsale.addAddressToWhitelist(damiens, {from : owner});
+    await crowdsale.addAddressToWhitelist(owner, {from: owner});
   });
-
-  
 
   describe('When considering the crowdsale has all predefined features: ', () => {
   	
