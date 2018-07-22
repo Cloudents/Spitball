@@ -46,24 +46,21 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
     database = await Database.new({from: owner});
     token = await SpitballToken.new(database.address, {from: owner});
     qa = await QandA.new(token.address, {from: owner});
-
     tokenToMint = (await database.amountOfTokenToMint()).toNumber() / 2;
     await token.mint(qa.address, tokenToMint, {from: owner});
-
   });
 
 
-
-   describe('When considering QandA should accept questions and answers', () => {
+  describe('When considering QandA should accept questions and answers', () => {
 
    	beforeEach(async () => {
    		await token.mint(alice, 200, {from: owner});
    		await token.mint(bob, 200, {from: owner});
       await token.mint(charlie, 200, {from: owner});
-     });
+    });
  
      
-		 it('should submit new question and add it data to mapping' , async () => {
+		it('should submit new question and add it data to mapping' , async () => {
      
 		 	const questionId = 1;
       const nonce = 32;
@@ -82,11 +79,8 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
         formattedInt(nonce)
       ];
 
-
       const vrs = ethUtil.ecsign(hashedTightPacked(components), alicePrivateKey);
       const sig = ethUtil.toRpcSig(vrs.v, vrs.r, vrs.s);
-
-
 
       const alicePrevBalance = (await token.balanceOf(alice)).toNumber();
 
@@ -97,38 +91,15 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
   
 		  aliceCurrentBalance.should.be.equal(alicePrevBalance - amount - fee);
     
-     });
+    });
      
      
-     it('should submit new answer and add it data to mapping' , async () => { 
-          const _qId = 1;
-          const _answerId = 'first';
-          const fee = 10;
-          const amount = 100;
-          const nonce = 32;
-          const components = [
-            Buffer.from('f7ac9c2e', 'hex'),
-            formattedAddress(token.address),
-            formattedAddress(qa.address),
-            formattedInt(amount),
-            formattedInt(fee),
-            formattedInt(nonce)
-          ];
-    
-          const vrs = ethUtil.ecsign(hashedTightPacked(components), alicePrivateKey);
-          const sig = ethUtil.toRpcSig(vrs.v, vrs.r, vrs.s);
-
-          await qa.submitNewAnswer(_qId, _answerId, sig, fee, nonce, {from : damiens}).should.be.fulfilled;
-     });
-     
-
-     it('shloud get price of question' , async () => {
-      const questionId = 1;
-      const nonce = 32;
-      const from = alice;
-      const delegate = damiens;
+    it('should submit new answer and add it data to mapping' , async () => { 
+      const _qId = 1;
+      const _answerId = 'first';
       const fee = 10;
       const amount = 100;
+      const nonce = 32;
       const components = [
         Buffer.from('f7ac9c2e', 'hex'),
         formattedAddress(token.address),
@@ -137,6 +108,31 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
         formattedInt(fee),
         formattedInt(nonce)
       ];
+
+      const vrs = ethUtil.ecsign(hashedTightPacked(components), alicePrivateKey);
+      const sig = ethUtil.toRpcSig(vrs.v, vrs.r, vrs.s);
+
+      await qa.submitNewAnswer(_qId, _answerId, sig, fee, nonce, {from : damiens}).should.be.fulfilled;
+    });
+     
+
+    it('should get price of question' , async () => {
+      const questionId = 1;
+      const nonce = 32;
+      const from = alice;
+      const delegate = damiens;
+      const fee = 10;
+      const amount = 100;
+
+      const components = [
+        Buffer.from('f7ac9c2e', 'hex'),
+        formattedAddress(token.address),
+        formattedAddress(qa.address),
+        formattedInt(amount),
+        formattedInt(fee),
+        formattedInt(nonce)
+      ];
+
       const vrs = ethUtil.ecsign(hashedTightPacked(components), alicePrivateKey);
       const sig = ethUtil.toRpcSig(vrs.v, vrs.r, vrs.s);
 
@@ -151,10 +147,10 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
       
       const t = (await qa.getPrice(questionId)).toNumber();
       t.should.be.equal(100);
-     });
+    });
 
 
-     it('Shloud UpVote to answer' , async () => {
+    it('should upvote the answer' , async () => {
       const questionId = 1;
       const nonce = 33;
       const from = alice;
@@ -214,10 +210,10 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
       await qa.upVote(questionId, _answerId, sig3, fee, nonce3, {from : damiens}).should.be.fulfilled;
       const test = await qa.getUpVoteList(questionId, _answerId);
       alice.should.be.equal(test[0]);
-     });
-   });
+    });
+  });
 
-   describe('When considering QandA should reward winners', () => {
+  describe('When considering that QandA is rewarding winners', () => {
 
     beforeEach(async () => {
       await token.mint(alice, 200, {from: owner});
@@ -225,7 +221,7 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
       await token.mint(charlie, 200, {from: owner});
     });
 
-    it('Should approve answer and spread founds to winers',  async () => {
+    it('should approve answer and transfer founds to winners',  async () => {
       const questionId = 1;
       const nonce = 33;
       const from = alice;
@@ -251,6 +247,7 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
       const bobPrevBalance = (await token.balanceOf(bob, {from : damiens})).toNumber();
 
       const _answerId = 'first';
+
       const components2 = [
         Buffer.from('f7ac9c2e', 'hex'),
         formattedAddress(token.address),
@@ -266,6 +263,7 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
       await qa.submitNewAnswer(questionId, _answerId, sig2, fee, nonce, {from : damiens}).should.be.fulfilled;
      
       const nonce3 = 33;
+
       const components3 = [
         Buffer.from('f7ac9c2e', 'hex'),
         formattedAddress(token.address),
@@ -278,6 +276,7 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
      
       const vrs3 = ethUtil.ecsign(hashedTightPacked(components3), alicePrivateKey);
       const sig3 = ethUtil.toRpcSig(vrs3.v, vrs3.r, vrs3.s);
+
       await qa.upVote(questionId, _answerId, sig3, fee, nonce3, {from : damiens});
     
       const nonce4 =34;
@@ -289,6 +288,7 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
         formattedInt(fee),
         formattedInt(nonce4)
       ];
+
       const vrs4 = ethUtil.ecsign(hashedTightPacked(components4), alicePrivateKey);
       const sig4 = ethUtil.toRpcSig(vrs4.v, vrs4.r, vrs4.s);
       await qa.approveAnswer(questionId, _answerId, bob, sig4, fee, nonce4, {from : damiens}).should.be.fulfilled;
@@ -297,44 +297,45 @@ contract('QandA', ([alice, bob, charlie, damiens, owner]) => {
       (await token.balanceOf(alice)).toNumber().should.be.equal(80);
       });
 
-      it('shold enable return founds to user option', async () => {
+      it('should enable return founds to user option', async () => {
+        const questionId = 1;
+        const nonce = 33;
+        const from = alice;
+        const delegate = damiens;
+        const fee = 10;
+        const amount = 100;
 
-          const questionId = 1;
-          const nonce = 33;
-          const from = alice;
-          const delegate = damiens;
-          const fee = 10;
-          const amount = 100;
+        const components = [
+          Buffer.from('f7ac9c2e', 'hex'),
+          formattedAddress(token.address),
+          formattedAddress(qa.address),
+          formattedInt(amount),
+          formattedInt(fee),
+          formattedInt(nonce)
+        ];
 
-          const components = [
-            Buffer.from('f7ac9c2e', 'hex'),
-            formattedAddress(token.address),
-            formattedAddress(qa.address),
-            formattedInt(amount),
-            formattedInt(fee),
-            formattedInt(nonce)
-          ];
-          const vrs = ethUtil.ecsign(hashedTightPacked(components), alicePrivateKey);
-          const sig = ethUtil.toRpcSig(vrs.v, vrs.r, vrs.s);
-          (await token.balanceOf(alice)).toNumber().should.be.equal(200);
-          await qa.submitNewQuestion(questionId, sig, amount, fee, nonce, {from : damiens});
-          (await token.balanceOf(alice)).toNumber().should.be.equal(90);
+        const vrs = ethUtil.ecsign(hashedTightPacked(components), alicePrivateKey);
+       
+        const sig = ethUtil.toRpcSig(vrs.v, vrs.r, vrs.s);
+        (await token.balanceOf(alice)).toNumber().should.be.equal(200);
+        await qa.submitNewQuestion(questionId, sig, amount, fee, nonce, {from : damiens});
+        (await token.balanceOf(alice)).toNumber().should.be.equal(90);
 
-          const nonce2 = 34;
-          const components2 = [
-            Buffer.from('f7ac9c2e', 'hex'),
-            formattedAddress(token.address),
-            formattedAddress(qa.address),
-            formattedInt(0),
-            formattedInt(fee),
-            formattedInt(nonce2)
-          ];
-          const vrs2 = ethUtil.ecsign(hashedTightPacked(components2), alicePrivateKey);
-          const sig2 = ethUtil.toRpcSig(vrs2.v, vrs2.r, vrs2.s);
+        const nonce2 = 34;
+        const components2 = [
+          Buffer.from('f7ac9c2e', 'hex'),
+          formattedAddress(token.address),
+          formattedAddress(qa.address),
+          formattedInt(0),
+          formattedInt(fee),
+          formattedInt(nonce2)
+        ];
+        
+        const vrs2 = ethUtil.ecsign(hashedTightPacked(components2), alicePrivateKey);
+        const sig2 = ethUtil.toRpcSig(vrs2.v, vrs2.r, vrs2.s);
 
-          await qa.returnFoundsToUser(questionId, sig2, fee, nonce2, {from : owner}).should.be.fulfilled;;
-          (await token.balanceOf(alice)).toNumber().should.be.equal(190);
-          
+        await qa.returnFoundsToUser(questionId, sig2, fee, nonce2, {from : owner}).should.be.fulfilled;;
+        (await token.balanceOf(alice)).toNumber().should.be.equal(190);
       });
    });
 });
