@@ -5,114 +5,90 @@ import "./IData.sol";
 contract ERC865Database is IData {
 
   //ERC865Token
-  mapping(bytes => bool) signatures;
-  mapping (address => bool) transfersWhitelist;
+    mapping(bytes => bool) signatures;
+    mapping (address => bool) transfersWhitelist;
 
-  string public constant symbol = "SBL";
-  string public constant name = "Spitball Token";
-  uint8 public constant decimals = 18;
-  uint256 public constant amountOfTokenToMint = 10 ** 9 * 10 ** uint256(decimals);
-  bool public isTransferWhitelistOnly = false;
-
-
-  function setSignatures 
-  (
-    bytes _sig, 
-    bool flag
-  ) 
-    external
-  {
-      signatures[_sig] = flag;
-  }
+    string public constant symbol = "SBL";
+    string public constant name = "Spitball Token";
+    uint8 public constant decimals = 18;
+    uint256 public constant amountOfTokenToMint = 10 ** 9 * 10 ** uint256(decimals);
+    
+    bool public isTransferWhitelistOnly = false;
 
 
-  function getSignatures 
-  (
-    bytes _sig
-  ) 
-    external 
-    view 
-    returns (bool)
-  {
-      return  signatures[_sig];
-  }
+    /**
+    * @dev Set the signature for nonces of performed transactions 
+    * @param _sig Signature defined by owner
+    * @param flag Boolean value
+    */
+    function setSignatures 
+    (
+        bytes _sig, 
+        bool flag
+    ) 
+      external
+    {
+        signatures[_sig] = flag;
+    }
 
 
-  function getSymbol () 
-    external 
-    pure 
-    returns (string)
-  {
-      return symbol;
-  }
-   
+    /**
+    * @dev Get the signature for nonces of performed transactions 
+    * @param _sig Signature defined by owner
+    */
+    function getSignatures 
+    (
+        bytes _sig
+    ) 
+      external 
+      view 
+      returns (bool)
+    {
+        return signatures[_sig];
+    }
+    
 
-  function getName () 
-    external 
-    pure 
-    returns (string)
-  {
-      return name;
-  }
+    /**
+    * @dev Allow/Disallow whitelisted transfers
+    * @param _flag Boolean value defining status of white listed transfers allowance
+    */
+    function setIsTransferWhitelistOnly 
+    (
+        bool _flag
+    ) 
+      external
+    {
+        isTransferWhitelistOnly = _flag;
+    }
 
+    /**
+    * @dev Check if some address is whitelisted
+    * @param _WhitelistAddress address of user who will be checked for appearance in whitelist
+    */
+    function getTransfersWhitelist 
+    (
+        address _WhitelistAddress
+    )
+      external 
+      view 
+      returns (bool)
+    {
+        return transfersWhitelist[_WhitelistAddress];
+    }
+    
 
-  function getDecimals ()
-    external 
-    pure 
-    returns (uint8)
-  {
-      return decimals;
-  }
-
-
-  function getAmountOfTokenToMint() 
-    external 
-    pure 
-    returns (uint256)
-  {
-      return amountOfTokenToMint;
-  }
-
-
-  function getIsTransferWhitelistOnly () 
-    external 
-    view 
-    returns (bool)
-  {
-      return isTransferWhitelistOnly;
-  }
-  
-
-
-  function setIsTransferWhitelistOnly 
-  (
-    bool _flag
-  ) 
-    external
-  {
-      isTransferWhitelistOnly = _flag;
-  }
-  
-
-  function getTransfersWhitelist 
-  (
-    address _WhitelistAddress
-  )
-    external 
-    view 
-    returns (bool)
-  {
-      return transfersWhitelist[_WhitelistAddress];
-  }
-  
-
-  function setTransfersWhitelist 
-  (
-    address _WhitelistAddress, 
-    bool _flag
-  ) 
-    external
-  {
-      transfersWhitelist[_WhitelistAddress] = _flag;
-  }
+    /**
+    * @dev Set the whitelist parameter for some address
+    * @param _WhitelistAddress address to which will be applied whitelist
+    * @param _flag Boolean value defining if user is whitelisted or no
+    */
+    function setTransfersWhitelist 
+    (
+        address _WhitelistAddress, 
+        bool _flag
+    ) 
+      external
+    {
+        transfersWhitelist[_WhitelistAddress] = _flag;
+    }
 }
