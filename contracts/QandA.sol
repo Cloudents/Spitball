@@ -162,7 +162,14 @@ contract QAndA is Ownable {
     * @param _fee uint256 amount of tokens owner willing to pay to delegate.
     * @param _nonce uint256 Presigned transaction number.
     */
-    function returnFoundsToUser (uint256 _qId, bytes _signature, uint256 _fee, uint256 _nonce) onlyOwner public {
+    function returnFoundsToUser 
+    (
+        uint256 _qId,
+        bytes _signature, 
+        uint256 _fee, 
+        uint256 _nonce
+    ) 
+        onlyOwner public {
         address from = getFrom(0, _fee, _nonce, _signature);
         require(from == id[_qId].qOwner);
         
@@ -243,7 +250,16 @@ contract QAndA is Ownable {
     * @param _signature bytes The signature, issued by the owner.
     * @return user address.
     */
-    function getFrom (uint256 _price, uint256 _fee, uint256 _nonce, bytes _signature) private view returns (address)
+    function getFrom 
+    (
+        uint256 _price, 
+        uint256 _fee, 
+        uint256 _nonce, 
+        bytes _signature
+    ) 
+    private 
+    view 
+    returns (address)
     {
         bytes32 hashedTx = tokenReward.approvePreSignedHashing(tokenReward, address(this), _price, _fee, _nonce);
         address from = tokenReward.recover(hashedTx, _signature);
