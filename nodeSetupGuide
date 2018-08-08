@@ -1,6 +1,6 @@
 Partner node setup guide
 
- Abstract: in this manual we will walk through the process of implementing a new geth (ethereum node) and connect it to the Spitball2.0 network. The os asume to be linux ubuntu but the set up will work on any os.
+Abstract: in this manual we will walk through the process of implementing a new geth (ethereum node) and connect it to the Spitball2.0 network. The os asume to be linux ubuntu but the set up will work on any os.
 
 You will need root privileges for the installation. 
 If using windows just open the prompt as administrator.
