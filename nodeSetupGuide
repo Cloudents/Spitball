@@ -26,7 +26,8 @@ Then run:
 geth --datadir ./datadir --networkid 51190 --port 30303 --nodiscover --rpc console
 
 In the console type:
-admin.addPeer("enode://9df0bb6faea67a7f853c0fafcc0604133f2f73b91592d2140207d4f088403777f3bd795a0086cd33368541f210ca7cc2f106472e2d38475c1114439b576fab8a@13.73.176.147:30303")
+admin.addPeer("enode://9df0bb6faea67a7f853c0fafcc0604133f2f73b91592d2140207d4f088403777f3bd795a0086cd33368541f210ca7cc2f106472e2d38475c1114439b576fab8a@13.73.176.147:30303?discport=0")
+admin.addPeer("enode://726e7912daca2cdba57777838fdd1849e67a58eb7c2d8e59b371e9f9cb7902a3781f6127725c27ae06d80338fa0699a88d67293b361ac8898ea9ed271cc8c6b3@13.69.54.132:30303?discport=0")
 
 You can check the peer was established by:
 	admin.peers.
