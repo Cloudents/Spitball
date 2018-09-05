@@ -1,4 +1,4 @@
-## Partner node setup guide
+# Partner node setup guide
 
 Abstract: in this manual we will walk through the process of implementing a new geth (ethereum node) and connect it to the Spitball2.0 network. The os asume to be linux ubuntu but the set up will work on any os.
 
@@ -23,12 +23,7 @@ Create new account:
 	geth --datadir ./datadir account new
 
 Then run:
-geth --datadir ./datadir --networkid 51190 --port 30303 --nodiscover --rpc console
-
-In the console type:
-admin.addPeer("enode://9df0bb6faea67a7f853c0fafcc0604133f2f73b91592d2140207d4f088403777f3bd795a0086cd33368541f210ca7cc2f106472e2d38475c1114439b576fab8a@13.73.176.147:30303?discport=0")
-admin.addPeer("enode://726e7912daca2cdba57777838fdd1849e67a58eb7c2d8e59b371e9f9cb7902a3781f6127725c27ae06d80338fa0699a88d67293b361ac8898ea9ed271cc8c6b3@13.69.54.132:30303?discport=0")
-
+geth --datadir=./datadir --bootnodes="enode://db7d6769782ddbff59f8c5f0710bb45e5ebc8fe40ee0a7d266926e83f345b381ece1e9ae3f163c41a885c1b0e338f4286e90f949fb4289899ef2df346c3dee16@13.73.176.147:30301" --networkid 51190 console
 You can check the peer was established by:
 	admin.peers.
 If the output do not look like “[]” then the connection was established.
