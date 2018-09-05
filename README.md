@@ -1,4 +1,4 @@
-## Spitball 0.2 Open Network
+## Spitball 2.0 Open Network
 
 Welcome to the Spitball economy source code repository!
 
